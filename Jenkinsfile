@@ -1,13 +1,6 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/Titotaufiqurrahman/php-ci-cd-demo.git'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 sh 'php -r "copy(\'https://getcomposer.org/installer\', \'composer-setup.php\');"'

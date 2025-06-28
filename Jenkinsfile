@@ -4,17 +4,25 @@ pipeline {
     stages {
         stage('Install Dependencies') {
             steps {
-                echo '📦 Installing dependencies...'
-                sh 'php -r "copy(\'https://getcomposer.org/installer\', \'composer-setup.php\');"'
-                sh 'php composer-setup.php'
-                sh 'php composer.phar install'
+                echo '📦 Installing dependencies with PHP container...'
+                sh '''
+                    docker run --rm \
+                        -v "$PWD":/app -w /app \
+                        php:8.1-cli \
+                        sh -c "curl -sS https://getcomposer.org/installer | php && php composer.phar install"
+                '''
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                echo '🧪 Running tests...'
-                sh './vendor/bin/phpunit tests/SimpleTest.php'
+                echo '🧪 Running tests with PHP container...'
+                sh '''
+                    docker run --rm \
+                        -v "$PWD":/app -w /app \
+                        php:8.1-cli \
+                        php vendor/bin/phpunit tests/SimpleTest.php
+                '''
             }
         }
 
@@ -28,9 +36,11 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 echo '🚀 Deploying container...'
-                sh 'docker stop php-app || true'
-                sh 'docker rm php-app || true'
-                sh 'docker run -d -p 8000:8000 --name php-app php-ci-cd-demo'
+                sh '''
+                    docker stop php-app || true
+                    docker rm php-app || true
+                    docker run -d -p 8000:8000 --name php-app php-ci-cd-demo
+                '''
             }
         }
     }
